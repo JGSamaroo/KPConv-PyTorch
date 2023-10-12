@@ -27,15 +27,29 @@ import os
 import numpy as np
 import sys
 import torch
+import pandas as pd
 
 # Dataset
+#change the import style
+#C:\Users\jsama\OneDrive\Documents\GitHub\3D-point-cloud\KPConv-PyTorch\datasets
+# "C:\Users\jsama\OneDrive\Documents\GitHub\3D-point-cloud\KPConv-PyTorch\datasets\ModelNet40.py"
+'''ModelNet40 = pd.read_csv('C:\\Users\\jsama\\OneDrive\\Documents\\GitHub\\3D-point-cloud\\KPConv-PyTorch\\datasets\\ModelNet40.py')
+S3DIS = pd.read_csv(r"C:/Users/jsama/OneDrive/Documents/GitHub/3D-point-cloud/KPConv-PyTorch/datasets/S3DIS.csv")
+SemanticKitti = pd.read_csv(r"C:/Users/jsama/OneDrive/Documents/GitHub/3D-point-cloud/KPConv-PyTorch/datasets/SemanticKitti.csv")
+Toronto3D = pd.read_csv(r"C:/Users/jsama/OneDrive/Documents/GitHub/3D-point-cloud/KPConv-PyTorch/datasets/Toronto3D.csv")
+'''
+
 from datasets.ModelNet40 import *
 from datasets.S3DIS import *
 from datasets.SemanticKitti import *
-from datasets.toronto3d import *
+from datasets.Toronto3D import *
+
 from torch.utils.data import DataLoader
 
+
+
 from utils.config import Config
+
 from utils.tester import ModelTester
 from models.architectures import KPCNN, KPFCNN
 
