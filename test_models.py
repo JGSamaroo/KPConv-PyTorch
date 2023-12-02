@@ -27,7 +27,7 @@ import os
 import numpy as np
 import sys
 import torch
-import pandas as pd
+#import pandas as pd
 
 # Dataset
 #change the import style
@@ -43,6 +43,7 @@ from datasets.ModelNet40 import *
 from datasets.S3DIS import *
 from datasets.SemanticKitti import *
 from datasets.Toronto3D import *
+from datasets.JumpingJacks import *
 
 from torch.utils.data import DataLoader
 
@@ -119,7 +120,7 @@ if __name__ == '__main__':
     on_val = True
 
     # Deal with 'last_XXXXXX' choices
-    chosen_log = model_choice(chosen_log)
+    chosen_log = model_choice('JJ') #chosen_log)
 
     ############################
     # Initialize the environment
@@ -193,6 +194,10 @@ if __name__ == '__main__':
         test_dataset = SemanticKittiDataset(config, set=set, balance_classes=False)
         test_sampler = SemanticKittiSampler(test_dataset)
         collate_fn = SemanticKittiCollate
+    elif config.dataset == 'JJ':
+        test_dataset = JJDataset(config, set='validation', use_potentials=True)
+        test_sampler = JJSampler(test_dataset)
+        collate_fn = JJCollate
     else:
         raise ValueError('Unsupported dataset : ' + config.dataset)
 
@@ -201,7 +206,7 @@ if __name__ == '__main__':
                              batch_size=1,
                              sampler=test_sampler,
                              collate_fn=collate_fn,
-                             num_workers=config.input_threads,
+                             num_workers=0, #config.input_threads,
                              pin_memory=True)
 
     # Calibrate samplers
