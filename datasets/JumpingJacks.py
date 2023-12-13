@@ -106,7 +106,7 @@ class JJDataset(PointCloudDataset):
         self.use_potentials = use_potentials
 
         # Path of the training files
-        self.train_path = 'original_ply'
+        self.train_path = 'Jack'
 
         # List of files to process
         ply_path = join(self.path, self.train_path)
@@ -132,7 +132,7 @@ class JJDataset(PointCloudDataset):
         # Prepare ply files
         ###################
 
-        self.prepare_JJ_ply()
+        #self.prepare_JJ_ply()
 
         ################
         # Load ply files
@@ -143,7 +143,9 @@ class JJDataset(PointCloudDataset):
         for i, f in enumerate(self.cloud_names):
             if self.set == 'training':
                 if self.all_splits[i] != self.validation_split:
-                    self.files += [join(ply_path, f + '.ply')]
+                    for plyfiles in listdir(join(self.path, self.train_path)):
+                        self.files += [join(join(self.path, self.train_path), plyfiles)]
+                    # self.files += [join(ply_path, f + '.ply')]
             elif self.set in ['validation', 'test', 'ERF']:
                 if self.all_splits[i] == self.validation_split:
                     self.files += [join(ply_path, f + '.ply')]
@@ -748,16 +750,21 @@ class JJDataset(PointCloudDataset):
 
                 # Read ply file
                 data = read_ply(file_path)
-                points = np.vstack((data['x'], data['y'], data['z'])).T
-                colors = np.vstack((data['red'], data['green'], data['blue'])).T
-                labels = data['class']
-
+                points = np.vstack((data[0], data[1], data[2])).T
+                print(points)
+                colors = np.vstack((data[3], data[4], data[5])).T
+                labels = data[6]
+                print("ply file read")
+                print("points colors labels")
+                print(points)
+                print(colors)
+                print(labels)
                 # Subsample cloud
                 sub_points, sub_colors, sub_labels = grid_subsampling(points,
                                                                       features=colors,
                                                                       labels=labels,
                                                                       sampleDl=dl)
-
+                print("subsample cloud")
                 # Rescale float color and squeeze label
                 sub_colors = sub_colors / 255
                 sub_labels = np.squeeze(sub_labels)
@@ -766,16 +773,19 @@ class JJDataset(PointCloudDataset):
                 search_tree = KDTree(sub_points, leaf_size=10)
                 #search_tree = nnfln.KDTree(n_neighbors=1, metric='L2', leaf_size=10)
                 #search_tree.fit(sub_points)
+                print("neighbors")
 
                 # Save KDTree
                 with open(KDTree_file, 'wb') as f:
                     pickle.dump(search_tree, f)
+                print("save Kdtree")
 
                 # Save ply
                 write_ply(sub_ply_file,
                           [sub_points, sub_colors, sub_labels],
                           ['x', 'y', 'z', 'red', 'green', 'blue', 'class'])
-
+                print("write ply")
+            print("out of the else statement")
             # Fill data containers
             self.input_trees += [search_tree]
             self.input_colors += [sub_colors]

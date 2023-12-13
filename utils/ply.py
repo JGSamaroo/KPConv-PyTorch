@@ -157,13 +157,24 @@ def read_ply(filename, triangular_mesh=False):
         if b'ply' not in plyfile.readline():
             raise ValueError('The file does not start whith the word ply')
 
+
+
         # get binary_little/big or ascii
         fmt = plyfile.readline().split()[1].decode()
-        if fmt == "ascii":
-            raise ValueError('The file is not binary')
-
         # get extension for building the numpy dtypes
         ext = valid_formats[fmt]
+        
+        if fmt == "ascii":
+            #raise ValueError('The file is not binary')
+            # Parse header
+            num_points, properties = parse_header(plyfile, ext)
+            print(plyfile)
+            # Get data
+            #data = np.fromfile(plyfile, dtype=int, sep=" ", count=248000) #not robust but uh.
+            data = np.loadtxt(plyfile, dtype=int, skiprows=12, max_rows=240000)
+            return data
+
+
 
         # PointCloud reader vs mesh reader
         if triangular_mesh:

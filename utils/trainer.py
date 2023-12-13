@@ -536,7 +536,7 @@ class ModelTrainer:
             preds = val_loader.dataset.label_values[np.argmax(probs, axis=1)]
 
             # Confusions
-            Confs[i, :, :] = fast_confusion(truth, preds, val_loader.dataset.label_values).astype(np.int32)
+            Confs[i, :, :] = fast_confusion(truth, preds, val_loader.dataset.label_values).astype(np.int64)
 
 
         t3 = time.time()
@@ -587,14 +587,18 @@ class ModelTrainer:
                 if not exists(pot_path):
                     makedirs(pot_path)
                 files = val_loader.dataset.files
+                print(len(files))
+                indexbad = 0
                 for i, file_path in enumerate(files):
+                    print("saving potential ", indexbad)
                     pot_points = np.array(val_loader.dataset.pot_trees[i].data, copy=False)
-                    cloud_name = file_path.split('/')[-1]
-                    pot_name = join(pot_path, cloud_name)
+                    cloud_name = file_path.split('\\')[-1]
+                    pot_name = join(pot_path, cloud_name) # join(pot_path, str(indexbad)) #join(pot_path, cloud_name)
                     pots = val_loader.dataset.potentials[i].numpy().astype(np.float32)
                     write_ply(pot_name,
                             [pot_points.astype(np.float32), pots],
                             ['x', 'y', 'z', 'pots'])
+                    indexbad += 1
 
         t6 = time.time()
 
@@ -622,17 +626,17 @@ class ModelTrainer:
                         sub_probs = np.insert(sub_probs, l_ind, 0, axis=1)
 
                 # Get the predicted labels
-                sub_preds = val_loader.dataset.label_values[np.argmax(sub_probs, axis=1).astype(np.int32)]
+                sub_preds = val_loader.dataset.label_values[np.argmax(sub_probs, axis=1).astype(np.int64)]
 
                 # Reproject preds on the evaluations points
-                preds = (sub_preds[val_loader.dataset.test_proj[i]]).astype(np.int32)
+                preds = (sub_preds[val_loader.dataset.test_proj[i]]).astype(np.int64)
 
                 # Path of saved validation file
                 cloud_name = file_path.split('/')[-1]
                 val_name = join(val_path, cloud_name)
 
                 # Save file
-                labels = val_loader.dataset.validation_labels[i].astype(np.int32)
+                labels = val_loader.dataset.validation_labels[i].astype(np.int64)
                 write_ply(val_name,
                           [points, preds, labels],
                           ['x', 'y', 'z', 'preds', 'class'])
@@ -772,7 +776,7 @@ class ModelTrainer:
 
                 # Update validation confusions
                 frame_C = fast_confusion(frame_labels,
-                                         frame_preds.astype(np.int32),
+                                         frame_preds.astype(np.int64),
                                          val_loader.dataset.label_values)
                 val_loader.dataset.val_confs[s_ind][f_ind, :, :] = frame_C
 
@@ -802,7 +806,7 @@ class ModelTrainer:
         for i, (preds, truth) in enumerate(zip(predictions, targets)):
 
             # Confusions
-            Confs[i, :, :] = fast_confusion(truth, preds, val_loader.dataset.label_values).astype(np.int32)
+            Confs[i, :, :] = fast_confusion(truth, preds, val_loader.dataset.label_values).astype(np.int64)
 
         t3 = time.time()
 
