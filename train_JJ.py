@@ -268,7 +268,7 @@ if __name__ == '__main__':
         config.saving_path = sys.argv[1]
 
     # Initialize datasets
-    training_dataset = JJDataset(config, set='training', use_potentials=True)
+    training_dataset = JJDataset(config, set='training', use_potentials=False)
     test_dataset = JJDataset(config, set='validation', use_potentials=True)
 
     # Initialize samplers

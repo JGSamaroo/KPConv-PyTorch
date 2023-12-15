@@ -44,6 +44,8 @@ from utils.mayavi_visu import *
 from datasets.common import grid_subsampling
 from utils.config import bcolors
 
+import ascii_write_ply
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 #
@@ -52,7 +54,7 @@ from utils.config import bcolors
 
 
 class JJDataset(PointCloudDataset):
-    """Class to handle S3DIS dataset."""
+    """Class to handle DFAUST dataset."""
 
     def __init__(self, config, set='training', use_potentials=True, load_data=True):
         """
@@ -65,20 +67,20 @@ class JJDataset(PointCloudDataset):
         ############
 
         # Dict from labels to names
-        self.label_to_names = {0: 'ceiling',
-                               1: 'floor',
-                               2: 'wall',
-                               3: 'beam',
-                               4: 'column',
-                               5: 'window',
-                               6: 'door',
-                               7: 'chair',
-                               8: 'table',
-                               9: 'bookcase',
-                               10: 'sofa',
-                               11: 'board',
-                               12: 'clutter',
-                               13: 'leg'}
+        self.label_to_names = {0: '0',
+                               1: '1',
+                               2: '2',
+                               3: '3',
+                               4: '4',
+                               5: '5',
+                               6: '6',
+                               7: '7',
+                               8: '8',
+                               9: '9',
+                               10: '10',
+                               11: '11',
+                               12: '12',
+                               13: '13'}
 
         # Initialize a bunch of variables concerning class labels
         self.init_labels()
@@ -87,7 +89,7 @@ class JJDataset(PointCloudDataset):
         self.ignored_labels = np.array([])
 
         # Dataset folder
-        self.path = '../../Data/50009_jumping_jacks'
+        self.path = '../../Data/JumpingJacks'
 
         # Type of task conducted on this dataset
         self.dataset_task = 'cloud_segmentation'
@@ -106,15 +108,15 @@ class JJDataset(PointCloudDataset):
         self.use_potentials = use_potentials
 
         # Path of the training files
-        self.train_path = 'Jack'
+        self.train_path = ""
 
         # List of files to process
         ply_path = join(self.path, self.train_path)
 
         # Proportion of validation scenes
-        self.cloud_names = ['Jack', 'Jack2']
-        self.all_splits = [0, 1]
-        self.validation_split = 1
+        self.cloud_names = ['50009_jumping_jacks', '50025_punching', '50027_shake_arms','validation_ply']
+        self.all_splits = [0, 1, 2, 3]
+        self.validation_split = 3
 
         # Number of models used per epoch
         if self.set == 'training':
@@ -143,14 +145,17 @@ class JJDataset(PointCloudDataset):
         for i, f in enumerate(self.cloud_names):
             if self.set == 'training':
                 if self.all_splits[i] != self.validation_split:
-                    for plyfiles in listdir(join(self.path, self.train_path)):
-                        self.files += [join(join(self.path, self.train_path), plyfiles)]
+                    #print("adding files")
+                    for plyfiles in listdir(join(self.path, self.cloud_names[i])):
+                        self.files += [join(join(self.path, self.cloud_names[i]), plyfiles)]
                     # self.files += [join(ply_path, f + '.ply')]
             elif self.set in ['validation', 'test', 'ERF']:
                 if self.all_splits[i] == self.validation_split:
                     self.files += [join(ply_path, f + '.ply')]
             else:
                 raise ValueError('Unknown set for S3DIS data: ', self.set)
+        #print("self files")
+        #print(self.files)
 
         if self.set == 'training':
             self.cloud_names = [f for i, f in enumerate(self.cloud_names)
@@ -223,6 +228,7 @@ class JJDataset(PointCloudDataset):
             self.batch_limit.share_memory_()
             np.random.seed(42)
 
+        print("end of init")
         return
 
     def __len__(self):
@@ -720,7 +726,7 @@ class JJDataset(PointCloudDataset):
         # Load KDTrees
         ##############
 
-        for i, file_path in enumerate(self.files):
+        for i, file_path in enumerate(self.cloud_names):#(self.files):
 
             # Restart timer
             t0 = time.time()
@@ -728,71 +734,83 @@ class JJDataset(PointCloudDataset):
             # Get cloud name
             cloud_name = self.cloud_names[i]
 
-            # Name of the input files
-            KDTree_file = join(tree_path, '{:s}_KDTree.pkl'.format(cloud_name))
-            sub_ply_file = join(tree_path, '{:s}.ply'.format(cloud_name))
+            for filename in listdir(join(self.path, file_path)): 
+                if '.ply' in filename:
+                    # Name of the input files
+                    #number from filename
+                    numfile = filename.split('_')[0]
+                    #print(numfile)
 
-            # Check if inputs have already been computed
-            if exists(KDTree_file):
-                print('\nFound KDTree for cloud {:s}, subsampled at {:.3f}'.format(cloud_name, dl))
+                    KDTree_file = join(tree_path, '{:s}_KDTree.pkl'.format(file_path + "_" + numfile))
+                    sub_ply_file = join(tree_path, '{:s}.ply'.format(file_path + "_" + numfile))
+                    #print(KDTree_file)
+                    #print(sub_ply_file)
 
-                # read ply with data
-                data = read_ply(sub_ply_file)
-                sub_colors = np.vstack((data['red'], data['green'], data['blue'])).T
-                sub_labels = data['class']
+                    # Check if inputs have already been computed
+                    if exists(KDTree_file):
+                        print('\nFound KDTree for cloud {:s}{:s}, subsampled at {:.3f}'.format(cloud_name,numfile, dl))
 
-                # Read pkl with search tree
-                with open(KDTree_file, 'rb') as f:
-                    search_tree = pickle.load(f)
+                        # read ply with data
+                        data = read_ply(sub_ply_file)
+                        sub_colors = [data[3], data[4], data[5]]
+                        sub_labels = data[6]
 
-            else:
-                print('\nPreparing KDTree for cloud {:s}, subsampled at {:.3f}'.format(cloud_name, dl))
+                        # Read pkl with search tree
+                        with open(KDTree_file, 'rb') as f:
+                            search_tree = pickle.load(f)
 
-                # Read ply file
-                data = read_ply(file_path)
-                points = np.vstack((data[0], data[1], data[2])).T
-                print(points)
-                colors = np.vstack((data[3], data[4], data[5])).T
-                labels = data[6]
-                print("ply file read")
-                print("points colors labels")
-                print(points)
-                print(colors)
-                print(labels)
-                # Subsample cloud
-                sub_points, sub_colors, sub_labels = grid_subsampling(points,
-                                                                      features=colors,
-                                                                      labels=labels,
-                                                                      sampleDl=dl)
-                print("subsample cloud")
-                # Rescale float color and squeeze label
-                sub_colors = sub_colors / 255
-                sub_labels = np.squeeze(sub_labels)
+                    else:
+                        print('\nPreparing KDTree for cloud {:s}{:s}, subsampled at {:.3f}'.format(cloud_name,numfile, dl))
+                        
+                        # Read ply file
+                        print(join(self.path, file_path) + '\\' + filename)
+                        data = read_ply(join(self.path, file_path) + '\\' + filename)
 
-                # Get chosen neighborhoods
-                search_tree = KDTree(sub_points, leaf_size=10)
-                #search_tree = nnfln.KDTree(n_neighbors=1, metric='L2', leaf_size=10)
-                #search_tree.fit(sub_points)
-                print("neighbors")
+                        points = data[:,0:3]
+                        colors = data[:, 3:6]
+                        labels = data[:, 6]
+                        #print("ply file read")
+                        #print("points colors labels")
+                        #print(points)
+                        #print(colors)
+                        #print(labels)
+                        # Subsample cloud
+                        sub_points, sub_colors, sub_labels = grid_subsampling(points.astype(np.single),
+                                                                            features=colors.astype(np.single),
+                                                                            labels=labels,
+                                                                            sampleDl=dl)
+                        #print("subsample cloud")
+                        # Rescale float color and squeeze label
+                        sub_colors = sub_colors / 255
+                        sub_labels = np.squeeze(sub_labels)
 
-                # Save KDTree
-                with open(KDTree_file, 'wb') as f:
-                    pickle.dump(search_tree, f)
-                print("save Kdtree")
+                        # Get chosen neighborhoods
+                        search_tree = KDTree(sub_points, leaf_size=10)
+                        #search_tree = nnfln.KDTree(n_neighbors=1, metric='L2', leaf_size=10)
+                        #search_tree.fit(sub_points)
+                        #print("neighbors")
 
-                # Save ply
-                write_ply(sub_ply_file,
-                          [sub_points, sub_colors, sub_labels],
-                          ['x', 'y', 'z', 'red', 'green', 'blue', 'class'])
-                print("write ply")
-            print("out of the else statement")
+                        # Save KDTree
+                        with open(KDTree_file, 'wb') as f:
+                            pickle.dump(search_tree, f)
+                        #print("save Kdtree")
+                        #print(sub_points.shape)
+                        # Save ply
+                        ascii_write_ply.write_ply(sub_ply_file,
+                                sub_points, sub_colors, sub_labels,
+                                ['x', 'y', 'z', 'red', 'green', 'blue', 'class'])
+                        #print("write ply")
+            #print("out of the else statement")
             # Fill data containers
             self.input_trees += [search_tree]
             self.input_colors += [sub_colors]
             self.input_labels += [sub_labels]
 
-            size = sub_colors.shape[0] * 4 * 7
-            print('{:.1f} MB loaded in {:.1f}s'.format(size * 1e-6, time.time() - t0))
+            #size = sub_colors.shape[0] * 4 * 7
+            #print('{:.1f} MB loaded in {:.1f}s'.format(size * 1e-6, time.time() - t0))
+            print('loaded')
+            if i>2:
+                return
 
         ############################
         # Coarse potential locations
@@ -807,14 +825,18 @@ class JJDataset(PointCloudDataset):
 
             pot_dl = self.config.in_radius / 10
             cloud_ind = 0
-
-            for i, file_path in enumerate(self.files):
-
+            val_path = 'C:\\00stuff\ImgProc\projectwork\Data\JumpingJacks\\validation_ply'
+            print(len(self.input_trees))
+            treenum = len(self.input_trees)
+            #for i, file_path in enumerate(self.files):
+            for file_path in listdir(val_path):
                 # Get cloud name
-                cloud_name = self.cloud_names[i]
+                #cloud_name = self.cloud_names[i]
+                filenum = file_path.split('_')[0]
+                #newtree = val_path + '\\' + file_path
 
                 # Name of the input files
-                coarse_KDTree_file = join(tree_path, '{:s}_coarse_KDTree.pkl'.format(cloud_name))
+                coarse_KDTree_file = join(val_path, '{:s}_coarse_KDTree.pkl'.format(filenum))
 
                 # Check if inputs have already been computed
                 if exists(coarse_KDTree_file):
@@ -836,7 +858,7 @@ class JJDataset(PointCloudDataset):
 
                 # Fill data containers
                 self.pot_trees += [search_tree]
-                cloud_ind += 1
+                #cloud_ind += 1
 
             print('Done in {:.1f}s'.format(time.time() - t0))
 
@@ -853,37 +875,43 @@ class JJDataset(PointCloudDataset):
             print('\nPreparing reprojection indices for testing')
 
             # Get validation/test reprojection indices
-            for i, file_path in enumerate(self.files):
+            #for i, file_path in enumerate(self.files):
+            for file_path in listdir(val_path):
 
                 # Restart timer
                 t0 = time.time()
 
                 # Get info on this cloud
-                cloud_name = self.cloud_names[i]
+                #cloud_name = self.cloud_names[i]
+                filenum = file_path.split('_')[0]
+                newtree = val_path + '\\' + file_path
 
                 # File name for saving
-                proj_file = join(tree_path, '{:s}_proj.pkl'.format(cloud_name))
+                proj_file = join(val_path, '{:s}_proj.pkl'.format(cloud_name))
 
                 # Try to load previous indices
                 if exists(proj_file):
                     with open(proj_file, 'rb') as f:
                         proj_inds, labels = pickle.load(f)
+                    self.test_proj += [proj_inds]
+                    self.validation_labels += [labels]
                 else:
-                    data = read_ply(file_path)
-                    points = np.vstack((data['x'], data['y'], data['z'])).T
-                    labels = data['class']
+                    if "ply" in file_path:
+                        data = read_ply(newtree)
+                        points = data[:,0:3]
+                        colors = data[:, 3:6]
+                        labels = data[:, 6]
 
-                    # Compute projection inds
-                    idxs = self.input_trees[i].query(points, return_distance=False)
-                    #dists, idxs = self.input_trees[i_cloud].kneighbors(points)
-                    proj_inds = np.squeeze(idxs).astype(np.int32)
+                        # Compute projection inds
+                        idxs = self.input_trees[i].query(points, return_distance=False)
+                        #dists, idxs = self.input_trees[i_cloud].kneighbors(points)
+                        proj_inds = np.squeeze(idxs).astype(np.int32)
 
-                    # Save
-                    with open(proj_file, 'wb') as f:
-                        pickle.dump([proj_inds, labels], f)
-
-                self.test_proj += [proj_inds]
-                self.validation_labels += [labels]
+                        # Save
+                        with open(proj_file, 'wb') as f:
+                            pickle.dump([proj_inds, labels], f)
+                        self.test_proj += [proj_inds]
+                        self.validation_labels += [labels]
                 print('{:s} done in {:.1f}s'.format(cloud_name, time.time() - t0))
 
         print()

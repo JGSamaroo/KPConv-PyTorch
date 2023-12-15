@@ -25,6 +25,7 @@
 # Basic libs
 import numpy as np
 import sys
+import io
 
 
 # Define PLY types
@@ -65,17 +66,17 @@ def parse_header(plyfile, ext):
     properties = []
     num_points = None
 
-    while b'end_header' not in line and line != b'':
+    while 'end_header' not in line and line != '':
         line = plyfile.readline()
 
-        if b'element' in line:
+        if 'element' in line:
             line = line.split()
             num_points = int(line[2])
-
-        elif b'property' in line:
+        '''
+        elif 'property' in line:
             line = line.split()
-            properties.append((line[2].decode(), ext + ply_dtypes[line[1]]))
-
+            properties.append((line[2], ext + ply_dtypes[line[1]]))
+        '''
     return num_points, properties
 
 
@@ -150,28 +151,33 @@ def read_ply(filename, triangular_mesh=False):
 
     """
 
-    with open(filename, 'rb') as plyfile:
-
+    #with open(filename, 'rb') as plyfile:
+    with open(filename, 'r') as plyfile:
 
         # Check if the file start with ply
-        if b'ply' not in plyfile.readline():
-            raise ValueError('The file does not start whith the word ply')
+        #if 'ply' not in plyfile.readline():
+        #    raise ValueError('The file does not start whith the word ply')
 
-
-
+        plyfile.readline()
+        #print(filename)
         # get binary_little/big or ascii
-        fmt = plyfile.readline().split()[1].decode()
+        fmt = plyfile.readline().split()[1] #.decode()
+        #fmt = "ascii"
         # get extension for building the numpy dtypes
         ext = valid_formats[fmt]
-        
+
+
         if fmt == "ascii":
             #raise ValueError('The file is not binary')
             # Parse header
-            num_points, properties = parse_header(plyfile, ext)
-            print(plyfile)
+            #num_points, properties = parse_header(plyfile, ext)
+            #print(plyfile)
+            num_points = 240000
             # Get data
             #data = np.fromfile(plyfile, dtype=int, sep=" ", count=248000) #not robust but uh.
             data = np.loadtxt(plyfile, dtype=int, skiprows=12, max_rows=240000)
+            #print(data.shape)
+            #print(data)
             return data
 
 

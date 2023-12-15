@@ -172,7 +172,7 @@ class Config:
     val_batch_num = 10
 
     # Maximal number of epochs
-    max_epoch = 1000
+    max_epoch = 50#1000
 
     # Number of steps per epochs
     epoch_steps = 1000
