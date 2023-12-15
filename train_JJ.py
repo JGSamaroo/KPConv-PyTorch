@@ -290,8 +290,8 @@ if __name__ == '__main__':
                              pin_memory=True)
 
     # Calibrate samplers
-    training_sampler.calibration(training_loader, verbose=True)
-    test_sampler.calibration(test_loader, verbose=True)
+    # training_sampler.calibration(training_loader, verbose=True)
+    # test_sampler.calibration(test_loader, verbose=True)
 
     # Optional debug functions
     # debug_timing(training_dataset, training_loader)

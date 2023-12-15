@@ -33,7 +33,7 @@ from os.path import join, exists
 from utils.ply import read_ply, write_ply
 from utils.config import bcolors
 
-
+import ascii_write_ply
 # ------------------------------------------------------------------------------------------
 #
 #           Functions
@@ -444,11 +444,11 @@ def load_kernels(radius, num_kpoints, dimension, fixed, lloyd=False):
             # Save points
             kernel_points = kernel_points[best_k, :, :]
 
-        write_ply(kernel_file, kernel_points, ['x', 'y', 'z'])
+        ascii_write_ply.write_ply_kernel(kernel_file, kernel_points, ['x', 'y', 'z'])
 
     else:
         data = read_ply(kernel_file)
-        kernel_points = np.vstack((data['x'], data['y'], data['z'])).T
+        kernel_points = data#np.vstack((data['x'], data['y'], data['z'])).T
 
     # Random roations for the kernel
     # N.B. 4D random rotations not supported yet

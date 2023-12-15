@@ -158,14 +158,14 @@ class ModelTrainer:
 
         # Start training loop
         for epoch in range(config.max_epoch):
-
+            print("epoch" + str(epoch))
             # Remove File for kill signal
             if epoch == config.max_epoch - 1 and exists(PID_file):
                 remove(PID_file)
 
             self.step = 0
             for batch in training_loader:
-
+                print(batch)
                 # Check kill signal (running_PID.txt deleted)
                 if config.saving and not exists(PID_file):
                     continue
@@ -204,6 +204,7 @@ class ModelTrainer:
                 torch.cuda.synchronize(self.device)
 
                 t += [time.time()]
+                print(t)
 
                 # Average timing
                 if self.step < 2:
