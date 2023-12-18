@@ -361,12 +361,13 @@ class JJDataset(PointCloudDataset):
 
             # Collect labels and colors
             input_points = (points[input_inds] - center_point).astype(np.float32)
-            input_colors = self.input_colors[cloud_ind][input_inds]
+            numpyinput_colors = np.asarray(self.input_colors)
+            input_colors = numpyinput_colors[cloud_ind%3][input_inds%3]
             if self.set in ['test', 'ERF']:
                 input_labels = np.zeros(input_points.shape[0])
             else:
-                input_labels = self.input_labels[cloud_ind][input_inds]
-                input_labels = np.array([self.label_to_idx[l] for l in input_labels])
+                input_labels = self.input_labels[cloud_ind%3][input_inds%3]
+                input_labels = np.array(input_labels)#[self.label_to_idx[l] for l in input_labels])
 
             t += [time.time()]
 
