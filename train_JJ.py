@@ -268,7 +268,7 @@ if __name__ == '__main__':
         config.saving_path = sys.argv[1]
 
     # Initialize datasets
-    training_dataset = JJDataset(config, set='training', use_potentials=False)
+    training_dataset = JJDataset(config, set='training', use_potentials=True)
     test_dataset = JJDataset(config, set='validation', use_potentials=True)
 
     # Initialize samplers
@@ -280,13 +280,13 @@ if __name__ == '__main__':
                                  batch_size=1,
                                  sampler=training_sampler,
                                  collate_fn=JJCollate,
-                                 num_workers=config.input_threads,
+                                 num_workers=0,
                                  pin_memory=True)
     test_loader = DataLoader(test_dataset,
                              batch_size=1,
                              sampler=test_sampler,
                              collate_fn=JJCollate,
-                             num_workers=config.input_threads,
+                             num_workers=0,
                              pin_memory=True)
 
     # Calibrate samplers

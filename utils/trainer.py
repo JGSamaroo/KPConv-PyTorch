@@ -164,8 +164,8 @@ class ModelTrainer:
                 remove(PID_file)
 
             self.step = 0
-            for batch in training_loader:
-                print(batch)
+            for batch, something in training_loader:
+                print("batch")
                 # Check kill signal (running_PID.txt deleted)
                 if config.saving and not exists(PID_file):
                     continue
@@ -178,8 +178,8 @@ class ModelTrainer:
                 t = t[-1:]
                 t += [time.time()]
 
-                if 'cuda' in self.device.type:
-                    batch.to(self.device)
+                #if 'cuda' in self.device.type:
+                #    batch.to(self.device)
 
                 # zero the parameter gradients
                 self.optimizer.zero_grad()
@@ -200,8 +200,8 @@ class ModelTrainer:
                 self.optimizer.step()
 
                 
-                torch.cuda.empty_cache()
-                torch.cuda.synchronize(self.device)
+                #torch.cuda.empty_cache()
+                #torch.cuda.synchronize(self.device)
 
                 t += [time.time()]
                 print(t)

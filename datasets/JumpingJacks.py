@@ -758,6 +758,10 @@ class JJDataset(PointCloudDataset):
                         # Read pkl with search tree
                         with open(KDTree_file, 'rb') as f:
                             search_tree = pickle.load(f)
+                        
+                        self.input_trees += [search_tree]
+                        self.input_colors += [sub_colors]
+                        self.input_labels += [sub_labels]
 
                     else:
                         print('\nPreparing KDTree for cloud {:s}{:s}, subsampled at {:.3f}'.format(cloud_name,numfile, dl))
@@ -802,9 +806,9 @@ class JJDataset(PointCloudDataset):
                         #print("write ply")
             #print("out of the else statement")
             # Fill data containers
-            self.input_trees += [search_tree]
-            self.input_colors += [sub_colors]
-            self.input_labels += [sub_labels]
+                        self.input_trees += [search_tree]
+                        self.input_colors += [sub_colors]
+                        self.input_labels += [sub_labels]
 
             #size = sub_colors.shape[0] * 4 * 7
             #print('{:.1f} MB loaded in {:.1f}s'.format(size * 1e-6, time.time() - t0))
