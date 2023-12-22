@@ -4,7 +4,7 @@ This is our branch of KPConv Pytorch, modified to use files from the DFAUST data
 
 dfaust_txt_to_ply converts the txt files to ply files for the program
 
-We have also modified and added multiple files, the main ones being JumpingJacks.py (the class for the dataset), train_JJ.py (program to run training), ply.py and trainer.py (utility functions to read data and run training programs)
+We have also modified and added multiple files, the main ones being JumpingJacks.py (the class for the dataset), train_JJ.py (program to run training), ascii_write_to_ply.py, ply.py and trainer.py (utility functions to read data and run training programs)
 
 # Original README
 ![Intro figure](https://github.com/HuguesTHOMAS/KPConv-PyTorch/blob/master/doc/Github_intro.png)
